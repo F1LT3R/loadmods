@@ -1,0 +1,9 @@
+module.exports = function (dep3) {
+
+  'use strict';
+
+  return {
+    val: dep3.val,
+  };
+
+};

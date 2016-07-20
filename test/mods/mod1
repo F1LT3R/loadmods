@@ -1,0 +1,13 @@
+module.exports = function (dep1, dep2) {
+
+  'use strict';
+
+  return {
+
+    calculate: function () {
+      return (dep1.val + dep2.val) * 2;
+    },
+
+  };
+
+};

@@ -1,0 +1,26 @@
+{
+  "name": "loadmods",
+  "version": "0.0.1",
+  "description": "loads modules resolving deps",
+  "main": "load",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/f1lt3r/loadmods.git"
+  },
+  "keywords": [
+    "module",
+    "pattern",
+    "dependency",
+    "resolve",
+    "app"
+  ],
+  "author": "F1LT3R",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/f1lt3r/loadmods/issues"
+  },
+  "homepage": "https://github.com/f1lt3r/loadmods#readme"
+}

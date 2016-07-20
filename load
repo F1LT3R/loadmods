@@ -1,0 +1,177 @@
+module.exports = function (modules) {
+
+  'use strict';
+
+
+  var path = require('path');
+
+  var basePath = path.dirname(process.argv[1]) + '/';
+
+  var maxTries = 30;
+  var tries = 0;
+
+  var loadedDepList = {};
+  var moduleStack = {};
+  var loadedModules = {};
+
+  return (function init () {
+
+    // Load all of the modules into the stack by name
+    modules.forEach(function (modulePath) {
+
+      var moduleFunc = require(basePath + modulePath);
+      var moduleName = getNameFromPath(modulePath);
+      var moduleDeps = getModDepNames(moduleFunc);
+
+      moduleStack[moduleName] = {
+        func: moduleFunc,
+        deps: moduleDeps,
+        depFuncs: {},
+      };
+
+      // We use this later to check everything is loaded
+      addDepsToLoadedDepList(moduleDeps);
+    });
+
+    // Lets push the modules that have no deps first
+    for (var name in moduleStack) {
+      if (moduleStack.hasOwnProperty(name)) {
+        var theModule = moduleStack[name];
+
+        if (theModule.deps.length === 0) {
+          loadedModules[name] = theModule.func();
+
+           if (loadedDepList.hasOwnProperty(name)) {
+             loadedDepList[name] = true;
+           }
+           // else {} // Error in code trying to load mod
+        }
+      }
+    }
+
+    return resolveDependancies();
+
+  })();
+
+
+  function getNameFromPath (modulePath) {
+    return path.basename(modulePath).replace(/.js/,'');
+  }
+
+
+  // Get the dependancy names from the function parens
+  function getModDepNames (modFunc) {
+    var args  = modFunc.toString().split('(')[1].split(')')[0].split(',');
+
+    var deps = [];
+
+    args.map(function (arg) {
+      var depName = arg.replace(/ /g, '');
+      if (depName) {
+        deps.push(depName);
+      }
+    });
+
+    return deps;
+  }
+
+
+
+  function addDepsToLoadedDepList (deps) {
+    deps.forEach(function (depName) {
+      // Set to true when loaded
+      loadedDepList[depName] = false;
+    });
+  }
+
+
+  function count (obj) {
+    var count = 0;
+    for (var n in obj) {
+      if (n) {
+        count += 1;
+      }
+    }
+    return count;
+  }
+
+
+  function checkAllDepsLoaded () {
+    var unloadableDeps = [];
+
+    for (var depName in loadedDepList) {
+      if (loadedDepList.hasOwnProperty(depName) && !loadedDepList[depName]) {
+        unloadableDeps.push(depName);
+      }
+    }
+
+    console.error('Unresolved dependancies: ' + unloadableDeps.join(', '));
+  }
+
+
+  function notLoaded (name) {
+    return !loadedModules.hasOwnProperty(name);
+  }
+
+
+  function applyDeps (name) {
+    var depsAry = [];
+
+    moduleStack[name].deps.forEach(function (depName) {
+      if (moduleStack.hasOwnProperty(depName)) {
+        if (loadedModules[depName]) {
+
+           depsAry.push(loadedModules[depName]);
+
+           if (loadedDepList.hasOwnProperty(name)) {
+             loadedDepList[name] = true;
+           }
+           // else {} // Tried to load a mod that never existed
+           //
+        }
+      }
+    });
+
+    if (moduleStack[name].deps.length > depsAry.length) {
+      // Deps not yet ready
+      // Maybe we will catch this the next time around
+      return false;
+    }
+
+    return depsAry;
+  }
+
+
+  function triesExhausted () {
+    checkAllDepsLoaded();
+    return loadedModules;
+  }
+
+
+  function resolveDependancies () {
+
+    for (var name in moduleStack) {
+      if (moduleStack.hasOwnProperty(name) && notLoaded(name)) {
+
+        var depsReady = applyDeps(name);
+
+        if (depsReady) {
+          loadedModules[name] = moduleStack[name].func.apply({}, depsReady);
+        }
+      }
+    }
+
+    tries += 1;
+
+    if (count(loadedModules) < count(moduleStack) && tries < maxTries) {
+      return resolveDependancies();
+    }
+    else if (count(loadedModules) === count(moduleStack)) {
+      return loadedModules;
+    }
+    else {
+      return triesExhausted();
+    }
+  }
+
+};

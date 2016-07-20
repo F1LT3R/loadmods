@@ -1,0 +1,27 @@
+{
+  "name": "loadmods",
+  "version": "0.0.1",
+  "description": "app module loader and dependancy resolver",
+  "main": "load",
+  "directories": {
+    "test": "test"
+  },
+  "keywords": [
+    "module",
+    "dependancy",
+    "loader",
+    "resolver",
+    "app"
+  ],
+  "author": "Alistair MacDonald <al@pwn.io>",
+  "email": "al@pwn.io",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/f1lt3r/loadmods.git"
+  },
+  "author": "F1LT3R",
+  "license": "MIT"
+}
